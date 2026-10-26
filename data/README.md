@@ -5,7 +5,10 @@
 | `dataset.csv` | Dataset enrichi original (173 mesures, 15 colonnes). **Ne jamais modifier.** | l'équipe |
 | `dataset_v1.csv` | Colonnes claires et utiles uniquement (173 lignes, 10 colonnes). | `notebooks/00_preparation_donnees.ipynb` |
 | `dataset_v2.csv` | v1 agrégée : une ligne par site (131 lignes, 11 colonnes). | `notebooks/00_preparation_donnees.ipynb` |
-| `dataset_v3.csv` | v2 enrichie de variables de sol et du biome (131 lignes, 16 colonnes). **Version de référence.** | `notebooks/03_enrichissement_donnees.ipynb` |
+| `dataset_v3.csv` | v2 enrichie de variables de sol, d'humidité du sol et du biome (131 lignes, 18 colonnes). | `notebooks/03_enrichissement_donnees.ipynb` |
+| `dataset_v4.csv` | **Table de modélisation** : v3 avec les choix validés appliqués (cible log Q10, log de MAP et N515, typologie de végétation, zone spatiale). **Version de référence pour la modélisation.** | `notebooks/02_selection_variables.ipynb` (partie B, étape 4) |
+| `typologie_biomes.csv` | Correspondance des 14 biomes RESOLVE vers les 3 classes de la typologie de végétation (pour la carte mondiale). | idem |
+| `grille_05deg.csv.gz` | Les 12 candidats sur une grille mondiale de 0.5° (64 745 cellules ; index `cellule` = ligne × 720 + colonne ; colonne `aire` = cosinus de la latitude, pour pondérer par la surface). | `notebooks/06_grille_mondiale.ipynb` |
 | `externe/` | Fichiers sources téléchargés (SoilGrids, RESOLVE). Ignoré par git, recréé par le notebook 03. | `notebooks/03_enrichissement_donnees.ipynb` |
 
 ## `dataset.csv` — origine
@@ -30,5 +33,18 @@ Construit par l'équipe : dataset public de Hacopian et al. (2026), complété p
 | `SOC` | carbone organique, idem (non candidat : redondant avec `N515`) | g/kg | v3 |
 | `CN` | rapport carbone / azote, SoilGrids 5–15 cm, idem | — | v3 |
 | `biome` | biome RESOLVE Ecoregions 2017 (Dinerstein et al., 2017) | catégorie | v3 |
+| `SWC_mean` | humidité du sol ERA5-Land 1995–2024, couche 0–7 cm, moyenne annuelle sur un disque de ≈ 15 km (via Google Earth Engine) | m³/m³ | v3 |
+| `SWC_warm_rel` | même humidité, moyenne des 3 mois les plus chauds / moyenne annuelle | — | v3 |
 
-Sources de MAT, MAP et pH : identiques à Hacopian (vérifié dans son script R), très probables pour tout le dataset.
+Sources de MAT, MAP et pH : identiques à Hacopian (vérifié dans son script R). MAT et MAP sont confirmés par recalcul depuis ERA5-Land 1995–2024 dans le notebook 03 (r > 0.99).
+
+## Colonnes ajoutées dans `dataset_v4.csv`
+
+| Colonne | Description |
+|---|---|
+| `log_Q10` | logarithme de Q10 : **cible des modèles** |
+| `logMAP`, `logN515` | logarithme de `MAP_public` et de `N515` (candidats à la place des valeurs brutes) |
+| `typologie` | végétation en 3 classes : forêts extratropicales, forêts tropicales, végétation ouverte |
+| `bloc` | zone spatiale (carré de 10° × 10°) utilisée par la validation croisée |
+
+**Les 12 candidats** : `lat`, `lon`, `MAT_public`, `logMAP`, `pH_public`, `logN515`, `clay`, `sand`, `CN`, `SWC_mean`, `SWC_warm_rel`, `typologie`. `MAP_public` brute est gardée pour la référence Hacopian. `SOC`, `N515` brute et `biome` ne sont pas repris.

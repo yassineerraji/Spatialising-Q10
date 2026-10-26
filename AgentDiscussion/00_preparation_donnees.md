@@ -20,7 +20,10 @@ Le dataset enrichi (`data/dataset.csv`, 173 lignes, 15 colonnes) a des métadonn
 - `N515` : azote SoilGrids, 5–15 cm, en **mg/kg**. Vérifié dans `03_enrichissement_donnees.ipynb` : N515 vaut 10 fois l'azote SoilGrids (exprimé en cg/kg), avec une corrélation de 0.98. L'unité cg/kg indiquée au départ était fausse.
 - Pour mémoire, le modèle publié par Hacopian (données publiques) est : Q10 = 0.1093 − 0.0315·MAT + 0.0002·MAP + 0.4112·pH.
 
-## `SWC_warm_rel` : ce que l'on sait
+## `SWC_warm_rel` : ce que l'on savait au moment de la v1
+
+> **Mise à jour (03_enrichissement_donnees) :** l'hypothèse ci-dessous est confirmée. En recalculant la variable depuis ERA5-Land (couche 0–7 cm, 3 mois les plus chauds / moyenne annuelle), on retrouve la colonne d'origine avec r = 0.98. La variable est réintégrée en v3. MAT et MAP sont aussi confirmés comme venant d'ERA5-Land 1995–2024 (r > 0.99).
+
 - **Introuvable en ligne** : aucune source publique n'utilise ce nom, et il est absent du script de Hacopian. C'est probablement une variable calculée par l'équipe ou par une base intermédiaire.
 - **Hypothèse déduite des valeurs** : humidité du sol pendant la saison chaude ÷ humidité moyenne annuelle. Indices :
   - valeurs centrées sur ≈ 0.95 (de 0.47 à 1.37), ce qui ressemble à un rapport et non à une humidité absolue ;
