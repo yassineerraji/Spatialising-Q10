@@ -26,15 +26,19 @@ Des sites synthétiques tirés d'une copule aident-ils à prédire Q10 dans des 
 
 **Utilité** (validation croisée spatiale ; écart avec le même modèle sur les vrais sites, ± erreur standard de Nadeau-Bengio) :
 
-| Variante | RMSE | Écart | Gain vs 2.2 |
+| Variante | RMSE | Écart | Gain vs 2.0 |
 |---|---|---|---|
-| Hacopian réentraîné (référence) | 0.963 | — | 4.4 % |
-| **Ridge, réels** | **0.933** | — | **7.3 %** |
-| Ridge, réels + 131 synth. | 0.954 | +0.021 ± 0.023 | 5.2 % |
-| Ridge, réels + 1000 synth. | 0.973 | **+0.040 ± 0.028** | 3.4 % |
-| forêt, réels | 1.000 | — | 0.7 % |
-| forêt, réels + 131 synth. | 0.988 | −0.012 ± 0.030 | 1.9 % |
-| forêt, réels + 1000 synth. | 0.971 | −0.029 ± 0.037 | 3.6 % |
+| *Q10 = 2.0 (valeur fixe)* | *1.083* | — | — |
+| *moyenne* | *0.980* | — | *9.5 %* |
+| Hacopian réentraîné (référence) | 0.963 | — | 11.1 % |
+| **Ridge, réels** | **0.933** | — | **13.8 %** |
+| Ridge, réels + 131 synth. | 0.954 | +0.021 ± 0.023 | 11.9 % |
+| Ridge, réels + 1000 synth. | 0.973 | **+0.040 ± 0.028** | 10.2 % |
+| forêt, réels | 1.000 | — | 7.7 % |
+| forêt, réels + 131 synth. | 0.988 | −0.012 ± 0.030 | 8.8 % |
+| forêt, réels + 1000 synth. | 0.971 | −0.029 ± 0.037 | 10.4 % |
+
+Référence : valeur fixe **2.0** (`INSTRUCTIONS.md`, constante `Q10_REFERENCE` de `src/protocole.py`). Les gains étaient auparavant exprimés par rapport à 2.2 ; seuls la ligne de référence et la colonne de gain ont changé, tous les RMSE sont identiques.
 
 - **Pourquoi le Ridge se dégrade :** `RidgeCV` est trompé par les sites synthétiques. La pénalité par site α / n passe de 0.474 à 0.037, soit une régularisation 13 fois plus faible.
 - **À pénalité par site égale :** l'effet disparaît (+0.004 ± 0.012). Les sites synthétiques n'apportent aucune information.
@@ -73,4 +77,4 @@ Question de l'équipe : le seul but est d'empêcher le sur-apprentissage, en par
 ## Points d'attention
 - **Pour le notebook 04 :** le Ridge sur les 11 candidats numériques, sans la typologie, fait 0.933, contre ≈ 0.953 pour le Ridge de 02 (partie C) avec la typologie. C'est cohérent avec 02 (partie B, étape 3), où la végétation dégradait le Ridge. Écart à confirmer par une comparaison appariée dans 04 (variantes V1 / V2).
 - Le contrôle à pénalité égale utilise un α choisi sur les 131 sites, sites de test compris. La comparaison entre ses deux variantes reste juste, mais ses scores ne sont pas des scores finaux.
-- Les R² restent proches de 0 (0.04 pour le meilleur modèle) : battre 2.2 ne veut pas encore dire bien prédire.
+- Les R² restent proches de 0 (0.04 pour le meilleur modèle) : battre 2.0 ne veut pas encore dire bien prédire. La simple moyenne de nos sites bat déjà 2.0 de 9.5 %.

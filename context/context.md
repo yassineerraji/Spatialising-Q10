@@ -6,6 +6,6 @@ Two starting points that motivate our work are as follows:
 
 2. ~2.0 is the currently used fixed Q10 value that we are trying to beat with a spatialised prediction model.
 
-The very goal of our work is to use Hacopian's work to build a model (or set of models) that beat the 2.2 fixed coefficient.
+The very goal of our work is to use Hacopian's work to build a model (or set of models) that beat the 2.0 fixed coefficient.
 
 This is therefore a regression task as the value we are trying to predict is continuous. 
