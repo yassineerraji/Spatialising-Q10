@@ -20,3 +20,4 @@ Liste mise de côté le 26/10/2026 : **on n'y travaille pas tout de suite**, on 
 
 ## Prochaine étape technique
 - [ ] **Produire la carte finale de Q10**, avec son export **NetCDF** pour ORCHIDEE.
+- [ ] **Piste proposée dans les slides** : un **niveau de confiance** par cellule (nombre de sites à moins de ≈ 1 000 km, combiné à l'aire d'applicabilité) et une **valeur de repli** (2.0 ou valeur régionale) sous un seuil α. Variante sans saut : mélange pondéré par la confiance.

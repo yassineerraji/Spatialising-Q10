@@ -1,6 +1,7 @@
 # Présentation (Beamer, 16:9)
 
 - `slides.tex` : source LaTeX de la présentation ; `slides.pdf` : version compilée.
+- `synthese.tex` / `synthese.pdf` : version condensée (14 slides), résultats et propositions seulement ; mêmes figures.
 - `figures/` : figures en PDF, générées par `figures.py` à partir des données et des résultats en cache (`resultats/04/`).
 
 Reconstruire, depuis la racine du dépôt :

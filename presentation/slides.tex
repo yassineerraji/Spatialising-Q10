@@ -6,6 +6,7 @@
 \usepackage[french]{babel}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{graphicx}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,babel,shapes.geometric}
@@ -32,7 +33,7 @@
   \hyperlink{sommaire}{\color{bleu}\scriptsize$\hookleftarrow$ Sommaire}\hspace{1.5em}\insertframenumber{} / \inserttotalframenumber\hspace{1.2em}}\vspace{0.7em}}
 
 % Encadré « À retenir »
-\newcommand{\retenir}[1]{\vfill\begin{beamercolorbox}[sep=5pt,rounded=true]{retenir}\small\textbf{À retenir} --- #1\end{beamercolorbox}}
+\newcommand{\retenir}[1]{\vfill\begin{beamercolorbox}[sep=5pt,rounded=true]{retenir}\small\textbf{Élément clé :} #1\end{beamercolorbox}}
 \newcommand{\Qdix}{Q\textsubscript{10}}
 \newcommand{\CN}{{\NoAutoSpacing C:N}}
 
@@ -194,17 +195,22 @@
 
 \begin{frame}{Quelle taille de zone ? Le semi-variogramme}
   \begin{columns}[c]
-    \column{0.55\textwidth}
+    \column{0.5\textwidth}
       \includegraphics[width=\linewidth]{variogramme_q10}
-    \column{0.43\textwidth}
-      \small
-      \[ \gamma(h) = \tfrac12\,\mathbb{E}\big[(\Qdix(s)-\Qdix(s+h))^2\big] \]
+      \centering\small\medskip
+      $\gamma(h) = \tfrac12\,\mathbb{E}\big[(\Qdix(s)-\Qdix(s+h))^2\big]$\\[2pt]
+      {\footnotesize moyenne sur toutes les paires de sites distants de $h$\par}
+    \column{0.48\textwidth}
+      \footnotesize
       \begin{itemize}
-        \item Faible sous 50 km (0.43), entre 0.5 et 0.8 jusqu'à $\approx$ 1\,500 km, puis palier ($\approx$ variance, pointillés).
-        \item Des sites distants de moins de 1\,000 à 1\,500 km se ressemblent encore.
-        \item \textbf{Choix} : zones de $10^\circ \times 10^\circ$ ($\approx$ 1\,100 km), 37 zones.
+        \item Sous 50 km, $\gamma = 0.43$ : moins de la moitié de la variance (0.99, pointillés).
+        \item Jusqu'à $\approx$ 1\,500 km, $\gamma$ reste sous la variance : les sites se ressemblent encore. Au-delà, palier (1.03 à 1.17).
+        \item \textbf{Pic à 100--200 km (0.98)} : 39 paires seulement ; les 3 qui contiennent le site au \Qdix{} maximal (6.04) font la moitié de la somme. Sans ce site, $\gamma = 0.54$.
+        \item \textbf{Palier au-dessus des pointillés} : la moyenne de $\gamma$ sur toutes les paires vaut exactement la variance. Les 57\,\% de paires à plus de 5\,000 km compensent donc les paires proches, sous la variance.
+        \item \textbf{Choix} : zones de $10^\circ \times 10^\circ$ ($\approx$ 1\,100 km en latitude), 37 zones.
       \end{itemize}
   \end{columns}
+  \retenir{les paires proches sont rares (1.3\,\% à moins de 200 km), d'où un début de courbe bruité. La portée ($\approx$ 1\,500 km) repose sur $\approx$ 700 paires par classe.}
 \end{frame}
 
 \begin{frame}{Le découpage retenu}
@@ -510,6 +516,43 @@
   \retenir{battre 2.0 : oui. Mieux prédire les variations du \Qdix{} d'une région à l'autre : très peu, avec ces données.}
 \end{frame}
 
+\begin{frame}{Trois R², trois questions différentes}
+  \small
+  \[ R^2 = 1 - \frac{\sum_i(\Qdix_{,i}-\widehat{\Qdix}_{,i})^2}{\sum_i(\Qdix_{,i}-\overline{\Qdix})^2} \qquad \text{(0 pour la moyenne ; négatif si l'on fait moins bien qu'elle)} \]
+  \footnotesize
+  \begin{tabular}{>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{5.4cm}}
+    \toprule
+    R² calculé sur\dots & Question posée & Ce qu'il mesure \\
+    \midrule
+    les sites d'entraînement (\textbf{ajustement}) & le modèle décrit-il ses données ? & le \textbf{pouvoir explicatif}, celui des articles (Hacopian : $R^2 \approx 0.15$) \\
+    des sites retirés au hasard (\textbf{VC aléatoire}) & prédit-il un site dont les voisins sont connus ? & l'interpolation \\
+    des régions retirées (\textbf{VC spatiale}) & prédit-il une région jamais vue ? & le \textbf{pouvoir prédictif} utile pour la carte \\
+    \bottomrule
+  \end{tabular}
+  \small
+  \begin{itemize}
+    \item \textbf{Plafond} : le bruit local entre mesures d'un même site limite le R² atteignable à $\approx 0.78$.
+    \item \textbf{$r^2$} (carré de la corrélation entre observé et prédit) : mesure seulement si le modèle \textbf{classe} les sites dans le bon ordre, sans pénaliser un décalage ou une mauvaise échelle.
+  \end{itemize}
+  \retenir{un R² d'ajustement élevé ne garantit rien pour des régions nouvelles.}
+\end{frame}
+
+\begin{frame}{Pouvoir explicatif contre pouvoir prédictif}
+  \begin{columns}[c]
+    \column{0.55\textwidth}
+      \includegraphics[width=\linewidth]{r2_trois}
+    \column{0.43\textwidth}
+      \small
+      \begin{itemize}
+        \item \textbf{Ajustement} : jusqu'à 0.88 (GP V1), \textbf{au-dessus du plafond} : le modèle apprend le bruit par cœur. Arbres : 0.42 à 0.62. Modèles retenus : 0.15 à 0.21.
+        \item \textbf{VC aléatoire} : au mieux 0.09 (BART V2, Elastic Net $\approx$ 0.07).
+        \item \textbf{VC spatiale} : au mieux 0.013 ; négatif pour les modèles flexibles.
+        \item $r^2$ spatial jusqu'à 0.08 : les modèles classent un peu les sites, mais leurs prédictions restent trop proches de la moyenne.
+      \end{itemize}
+  \end{columns}
+  \retenir{l'ordre s'inverse : plus un modèle explique ses propres sites, moins il prédit les régions nouvelles.}
+\end{frame}
+
 % =====================================================================
 \section{Piste explorée : données synthétiques}
 
@@ -616,7 +659,7 @@
     \midrule
     H1 --- \Qdix{} prévisible depuis des cartes & \textbf{en partie} : signal robuste mais faible ($R^2\approx0$ en régions nouvelles) \\
     H2 --- plus de variables aident & \textbf{en partie} : N et SWC été relatif entrent dans le noyau ; le pH n'y survit pas \\
-    H3 --- le ML flexible bat le linéaire & \textcolor{rouge}{\textbf{non}} : linéaire et additif en tête ; boosting et GP sur-apprennent \\
+    H3 --- le ML flexible bat le linéaire & \textcolor{rouge}{\textbf{non}} : linéaire et additif en tête ; boosting et GP sur-apprennent (R² d'ajustement jusqu'à 0.88, R² spatial négatif) \\
     H4 --- les données synthétiques compensent & \textcolor{rouge}{\textbf{non}} : aucune information nouvelle \\
     H5 --- les coordonnées sont utiles & \textbf{oui pour la longitude} (effet Asie de l'Est) ; origine à éclaircir \\
     H6 --- le biome est un bon prédicteur & \textbf{indécidable} avec nos données (test peu puissant) \\
@@ -628,7 +671,7 @@
   \begin{enumerate}
     \item \textbf{Les données sont le facteur limitant} : 131 sites concentrés sur trois régions ; le modèle extrapole sur 64 \% des terres.
     \item \textbf{Battre 2.0 est facile, mais surtout par le niveau moyen.} Les variables n'ajoutent que 2 à 3 points, ce qui ne se distingue ni de la moyenne ni de Hacopian réentraîné.
-    \item \textbf{Les modèles simples gagnent} : la complexité n'apporte rien avec si peu de sites.
+    \item \textbf{Les modèles simples gagnent} : les plus flexibles expliquent jusqu'à 88 \% de la variance de leurs propres sites, mais rien dans des régions nouvelles.
     \item \textbf{Signaux robustes} : azote, sécheresse estivale, MAT, effet Asie de l'Est, végétation ouverte.
     \item \textbf{L'incertitude de la carte vient de l'extrapolation}, et elle est maximale dans les régions froides.
   \end{enumerate}
@@ -646,27 +689,20 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Propositions et questions pour vous}
-  \begin{columns}[t]
-    \column{0.47\textwidth}
+\begin{frame}{Proposition : un niveau de confiance et une valeur de repli}
+  \begin{columns}[c]
+    \column{0.6\textwidth}
+      \includegraphics[width=\linewidth]{confiance}
+    \column{0.38\textwidth}
       \small
-      \textbf{Propositions à valider}
-      \begin{enumerate}
-        \item Carte produite avec \textbf{Elastic Net V2 et bridage} des variables.
-        \item Carte livrée \textbf{avec son aire d'applicabilité}.
-        \item Carte \textbf{BART} en variante de sensibilité pour les régions froides.
-      \end{enumerate}
-    \column{0.51\textwidth}
-      \small
-      \textbf{Questions}
-      \begin{enumerate}
-        \item Grille et format attendus par ORCHIDEE ?
-        \item \Qdix{} fixe, ou fonction du climat qui évolue avec les scénarios ?
-        \item Le carbone du sol d'ORCHIDEE est-il suivi par PFT ? Un \Qdix{} par PFT serait-il plus utile ?
-        \item Quelle valeur vous semble plausible pour les régions froides (3.4 ou 2.9) ?
-        \item Comment juger un résultat « mondial » sans site en Afrique ni en Amérique du Sud ?
-      \end{enumerate}
+      \begin{itemize}
+        \item \textbf{Confiance} : $c(x)=\min\big(1,\,n_r(x)/n^*\big)$, où $n_r(x)$ est le nombre de sites à moins de $r\approx 1\,000$ km (portée du semi-variogramme).
+        \item \textbf{Règle} : prédiction du modèle si $c(x)\ge\alpha$ ; sinon \textbf{valeur de repli} : 2.0, ou une valeur propre à la zone.
+        \item \textbf{Sans saut} : $c\,\hat f + (1-c)\,\Qdix^{\text{repli}}$.
+        \item \textbf{Aujourd'hui} : 30 \% des terres ont au moins un site à moins de 1\,000 km ; 13 \% en ont au moins cinq.
+      \end{itemize}
   \end{columns}
+  \retenir{la carte prédirait là où elle dispose d'informations (en combinant cette confiance avec l'aire d'applicabilité), et reviendrait à une valeur prudente ailleurs.}
 \end{frame}
 
 \begin{frame}{Pistes à explorer}

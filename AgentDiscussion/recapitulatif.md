@@ -52,6 +52,7 @@
   - **10 configurations sont équivalentes**, et la plus simple est **Elastic Net V2** (0.956, −11.7 % par rapport à 2.0) ;
   - le boosting, CatBoost et le GP font moins bien que la simple moyenne ;
   - **la sélection LASSO en amont aide ou est neutre pour tous les modèles.**
+- **R²** (`04_comparaison_modeles`, partie D) : le R² d'ajustement va de 0.15 à 0.21 pour les modèles retenus et jusqu'à 0.88 pour les plus flexibles, qui sur-apprennent. En régions nouvelles (validation croisée spatiale), il vaut au mieux 0.013. Plus un modèle explique ses propres sites, moins il prédit bien ailleurs.
 
 ## 9. Données synthétiques par copules (`05_donnees_synthetiques`, autre session)
 - Elles n'apportent aucune information nouvelle : elles dégradent le Ridge et ne font que régulariser la forêt. **Recommandation : ne pas les utiliser.**

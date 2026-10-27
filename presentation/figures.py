@@ -142,6 +142,7 @@ classes = pd.cut(dist[paires], bornes)
 variogramme = lambda z: pd.Series((0.5 * (z[:, None] - z) ** 2)[paires]).groupby(classes, observed=True).mean()
 residus = v4.Q10.values - oof.mean(axis=0)
 etiquettes = ["0–50", "50–100", "100–200", "200–300", "300–500", "500–750", "750–1000", "1000–1500", "1500–2000", "2000–3000", "3000–5000", "> 5000"]
+etiquettes = [f"{e} ({n})" for e, n in zip(etiquettes, pd.Series(classes).value_counts(sort=False))]
 for nom, avec_residus in [("variogramme_q10", False), ("variogramme_residus", True)]:
     fig, ax = plt.subplots(figsize=(7.5, 3.8))
     ax.plot(range(12), variogramme(v4.Q10.values), "o-", color=BLEU, label="Q10")
@@ -149,7 +150,7 @@ for nom, avec_residus in [("variogramme_q10", False), ("variogramme_residus", Tr
     if avec_residus:
         ax.plot(range(12), variogramme(residus), "o-", color=ORANGE, label="résidus du modèle")
         ax.axhline(residus.var(ddof=1), ls="--", c=ORANGE, lw=1)
-    ax.set_xticks(range(12), etiquettes, rotation=45, ha="right"); ax.set_xlabel("Distance entre sites (km)"); ax.set_ylabel("Semi-variance γ(h)")
+    ax.set_xticks(range(12), etiquettes, rotation=45, ha="right"); ax.set_xlabel("Distance entre sites, en km (nombre de paires)"); ax.set_ylabel("Semi-variance γ(h)")
     ax.legend(frameon=False)
     sauver(nom)
 
@@ -225,3 +226,60 @@ sauver("cartes_modeles")
 froid = grille.MAT_public < v4.MAT_public.min()
 for nom in pred.columns:
     print(f"  {nom:30s} Q10 moyen terres {np.average(pred[nom], weights=grille.aire):.2f} | régions froides {np.average(pred[nom][froid], weights=grille.aire[froid]):.2f}")
+
+# 12. Niveau de confiance : nombre de sites connus à moins de 1 000 km de deux points à prédire
+def distance_km(lat1, lon1, lat2, lon2):
+    lat1, lon1, lat2, lon2 = map(np.radians, (lat1, lon1, lat2, lon2))
+    return 6371 * 2 * np.arcsin(np.sqrt(np.sin((lat2 - lat1) / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin((lon2 - lon1) / 2) ** 2))
+
+
+def cercle(lat, lon, rayon_km):
+    d, phi, lam, theta = rayon_km / 6371, np.radians(lat), np.radians(lon), np.linspace(0, 2 * np.pi, 300)
+    phi2 = np.arcsin(np.sin(phi) * np.cos(d) + np.cos(phi) * np.sin(d) * np.cos(theta))
+    lam2 = lam + np.arctan2(np.sin(theta) * np.sin(d) * np.cos(phi), np.cos(d) - np.sin(phi) * np.sin(phi2))
+    return np.degrees(lam2), np.degrees(phi2)
+
+
+RAYON = 1000
+points = {"Amazonie": (-5, -62, ROUGE, (-178, -48)), "Chine centrale": (30.5, 112, VERT, (40, -48))}
+fig, ax = plt.subplots(figsize=(7, 3.4))
+fond_terres(ax)
+ax.scatter(v4.lon, v4.lat, s=7, c="#555555", zorder=2)
+for nom, (lat, lon, couleur, position) in points.items():
+    proches = distance_km(lat, lon, v4.lat.values, v4.lon.values) < RAYON
+    nombre = "aucun site" if proches.sum() == 0 else f"{proches.sum()} sites"
+    texte = f"{nombre} à moins de 1 000 km\n" + ("confiance forte : prédiction du modèle" if proches.sum() >= 5 else "confiance faible : valeur de repli")
+    x, y = cercle(lat, lon, RAYON)
+    ax.fill(x, y, color=couleur, alpha=0.18, zorder=1); ax.plot(x, y, color=couleur, lw=1.5, zorder=3)
+    ax.scatter(v4.lon[proches], v4.lat[proches], s=12, color=couleur, edgecolor="k", linewidth=0.3, zorder=4)
+    ax.scatter(lon, lat, marker="*", s=180, color=couleur, edgecolor="k", linewidth=0.6, zorder=5)
+    ax.annotate(texte, xy=(lon, lat), xytext=position, fontsize=9, color=couleur, fontweight="bold", arrowprops=dict(arrowstyle="->", color=couleur, lw=1))
+    print(f"  {nom} : {proches.sum()} sites à moins de {RAYON} km")
+sauver("confiance")
+
+# 13. Les trois R² (ajustement, validation croisée aléatoire, validation croisée spatiale)
+r2 = lambda p: 1 - ((v4.Q10.values - p) ** 2).sum() / ((v4.Q10.values - v4.Q10.mean()) ** 2).sum()
+X_cat = v4[candidats + ["typologie"]]
+fabriques = {"Elastic Net": lambda p: M.elastic_net(), "GAM": lambda p: M.gam(), "SVR": lambda p: M.svr(), "GP": lambda p: M.gp(p),
+             "Random Forest": lambda p: M.random_forest(), "XGBoost": lambda p: M.xgboost(), "CatBoost": lambda p: M.catboost(["typologie"]), "BART": lambda p: M.bart()}
+lignes = {}
+for nom, fabrique in fabriques.items():
+    for v in ["V1", "V2"]:
+        X_config = X_cat if (nom == "CatBoost" and v == "V1") else X
+        m, colonnes = M.ajuster_final(fabrique, X_config, v4.log_Q10, v4.bloc, v == "V2")
+        fichier = f"{nom.replace(' ', '_')}_{v}.pkl"
+        lignes[f"{nom} {v}"] = {"ajustement": r2(np.exp(m.predict(X_config[colonnes]))),
+                                "aléatoire": np.mean([r2(o) for o in pd.read_pickle(RACINE / "resultats" / "04" / "aleatoire" / fichier)[1]]),
+                                "spatiale": np.mean([r2(o) for o in pd.read_pickle(RACINE / "resultats" / "04" / fichier)[1]])}
+tab = pd.DataFrame(lignes).T.sort_values("ajustement", ascending=False)
+fig, ax = plt.subplots(figsize=(7.2, 5.2))
+for colonne, couleur, marque, etiquette in [("ajustement", ROUGE, "o", "ajustement (mêmes sites)"), ("aléatoire", ORANGE, "s", "validation croisée aléatoire"), ("spatiale", BLEU, "D", "validation croisée spatiale")]:
+    ax.scatter(tab[colonne], range(len(tab)), color=couleur, marker=marque, s=34, label=etiquette, zorder=3)
+for i in range(len(tab)):
+    ax.plot(tab.iloc[i][["ajustement", "aléatoire", "spatiale"]].agg(["min", "max"]), [i, i], color=GRIS, lw=0.8, zorder=1)
+ax.axvline(0, c="k", lw=0.8); ax.axvline(0.78, c=GRIS, ls="--", lw=1)
+ax.text(0.8, len(tab) - 1.5, "plafond ≈ 0.78 (bruit local)", rotation=90, ha="left", va="bottom", fontsize=9, color=GRIS)
+ax.set_yticks(range(len(tab)), tab.index); ax.invert_yaxis(); ax.set_xlabel("R² (échelle de Q10)")
+ax.legend(frameon=False, fontsize=9, loc="lower center", bbox_to_anchor=(0.45, 1.0), ncol=3, handletextpad=0.2, columnspacing=0.8)
+sauver("r2_trois")
+print(tab.round(3).to_string())

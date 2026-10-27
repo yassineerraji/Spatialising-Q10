@@ -87,3 +87,22 @@ Grille mondiale de 0.5° construite dans `06_grille_mondiale.ipynb` (64 745 cell
 ### Points techniques
 - `src/modeles.py` : `ajuster_final` (entraînement sur tous les sites) et option `brider` dans `predire_v1` / `predire_v2` (désactivée par défaut, donc les résultats en cache restent valides).
 - Le nom de colonne de `resumer` est devenu « gain vs référence (%) » : le notebook 05 (copules) passe la RMSE de sa propre constante (2.2), et une étiquette « vs 2.0 » y aurait été fausse.
+
+## Partie D — Le coefficient de détermination R² (fait)
+Demande de l'équipe : c'est la métrique la plus utilisée avec B. Guenet. Trois versions, sur l'échelle de Q10 :
+
+| | R² ajustement (mêmes sites) | R² VC aléatoire | R² VC spatiale | r² VC spatiale |
+|---|---|---|---|---|
+| GP V1 | **0.882** | −0.047 | −0.187 | 0.007 |
+| CatBoost V1 / V2 | 0.624 / 0.571 | 0.004 / 0.002 | −0.098 / −0.087 | 0.025 / 0.031 |
+| XGBoost V1 / V2 | 0.570 / 0.494 | −0.026 / 0.012 | −0.148 / −0.104 | 0.014 / 0.026 |
+| Forêt aléatoire V1 / V2 | 0.477 / 0.424 | 0.045 / 0.059 | −0.052 / −0.030 | 0.029 / 0.044 |
+| BART V2 | 0.212 | **0.091** | **0.013** | 0.058 |
+| Elastic Net V2 (retenue) | 0.179 | 0.070 | 0.010 | 0.073 |
+| GAM V2 | 0.177 | 0.056 | −0.002 | **0.077** |
+| Hacopian réentraîné | 0.081 | 0.039 | −0.000 | — |
+
+- **L'ordre s'inverse** : plus un modèle explique ses propres sites, moins il prédit les régions nouvelles. Le GP V1 dépasse le plafond de ≈ 0.78 fixé par le bruit local : il apprend ce bruit par cœur.
+- **Pouvoir explicatif des modèles retenus** : 0.15 à 0.21, du même ordre que Hacopian (≈ 0.15 sur ses données ; 0.08 pour sa forme de modèle sur nos sites).
+- **Pouvoir prédictif** : au mieux 0.09 en validation croisée aléatoire, 0.013 en validation croisée spatiale. Le r² (0.07–0.08) montre que les modèles classent un peu les sites, mais que leurs prédictions restent trop proches de la moyenne.
+- **Pour juger la carte, c'est le R² spatial qu'il faut retenir.** Validation croisée aléatoire : 5 plis × 5 répétitions (cache `resultats/04/aleatoire/`).
