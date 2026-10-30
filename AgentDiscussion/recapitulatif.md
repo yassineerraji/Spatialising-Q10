@@ -67,6 +67,13 @@
 - **Le Q10 moyen mondial prédit est de 2.1 à 2.2.** L'apport d'une carte tient donc surtout à la répartition spatiale de Q10.
 - **Un artefact au Sahara** (Q10 jusqu'à 6.4), dû à `SWC_warm_rel`, est supprimé en bridant chaque variable à la plage de nos sites. Le bridage améliore même légèrement la validation croisée (0.950).
 
+## 12. Niveau de confiance et valeur de repli (`07_confiance_repli`, premier jet du 30/10/2026)
+- **Règle** : le modèle est utilisé là où des sites sont proches, et la carte revient à **2.0** (valeur actuelle d'ORCHIDEE, décision de l'équipe) ailleurs. Formule : $c = \min\big(1,\ n_{1000}/3\big)$, puis $\log Q_{10} = c\,\log \hat{f} + (1 - c)\,\log 2.0$.
+- **Chaque valeur vient d'une recherche sur grille** ($r$ de 100 à 3 000 km, $n^*$ de 1 à 30, seuil ou mélange), suivie de tests de robustesse : répétitions, 17 configurations, sous-échantillons, validation croisée imbriquée. Le rayon trouvé (1 000 km) est la portée du semi-variogramme.
+- **Le mélange** est indiscernable du seuil en validation croisée, mais il crée des sauts deux fois plus petits et il est deux fois moins sensible à l'ajout d'un site.
+- **Sur nos sites, la règle bat 2.0 de 0.10**, mais fait un peu moins bien que le modèle seul (+0.03, sous une erreur standard) : c'est le prix du repli sur 2.0, plus bas que le niveau de nos sites.
+- **Carte** : modèle sur 20 % des terres, mélange sur 10 %, 2.0 sur 70 % ; Q10 moyen 2.08 ; régions froides ramenées à 2.1.
+
 ## Ce qu'on a appris
 1. **Les données sont le facteur limitant** : peu de sites, très concentrés géographiquement, et un R² proche de 0 dans des régions nouvelles.
 2. **Battre 2.0 est facile, mais surtout grâce au niveau moyen.** Les variables n'ajoutent qu'environ 2.5 points, ce qui ne se distingue ni de la moyenne ni du modèle de Hacopian réentraîné.
@@ -78,4 +85,5 @@
 - **Valider les 3 propositions de la partie C** : Elastic Net V2 avec bridage, carte livrée avec son aire d'applicabilité, et carte BART comme variante de sensibilité.
 - **Harmoniser `context/context.md`**, qui dit toujours 2.2.
 - **Questions pour B. Guenet** : grille et format ; Q10 fixe ou fonction du climat ; Q10 par type de végétation (PFT) ; régions froides ; comment juger un résultat « mondial ».
+- **Valider les 4 décisions de `07`** (niveau de confiance et repli) : perte de sélection, mélange, aire d'applicabilité, régions froides à 2.0.
 - **Prochaine étape** : produire la carte finale, avec son export NetCDF pour ORCHIDEE.
